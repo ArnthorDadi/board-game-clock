@@ -1,6 +1,5 @@
 import React from "react";
 import firebase from "firebase/compat";
-import Timestamp = firebase.firestore.Timestamp;
 import {
   Collection,
   CollectionType,
