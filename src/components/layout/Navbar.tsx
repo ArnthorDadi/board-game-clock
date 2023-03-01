@@ -30,18 +30,18 @@ export const Navbar: React.FC = () => {
   const logoutUser = useCallback(async () => {
     try {
       await signOut();
-      // if (WebsocketClient.isLoggedIn()) {
-      //   await WebsocketClient.players.leaveRoom({
-      //     id: session.data?.user.id ?? "",
-      //     name: session.data?.user?.name ?? "",
-      //   });
-      //   await WebsocketClient.logout();
-      // }
+      if (WebsocketClient.isLoggedIn()) {
+        await WebsocketClient.players.leaveRoom({
+          id: session.data?.user.id ?? "",
+          name: session.data?.user?.name ?? "",
+        });
+        await WebsocketClient.logout();
+      }
       setIsUserDropdownOpen(false);
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [session.data?.user.id, session.data?.user?.name]);
 
   return (
     <nav className="relative w-full">
@@ -61,7 +61,7 @@ export const Navbar: React.FC = () => {
             alt="Board game clock Logo"
           />
         </a>
-        <p className="text-3xl font-semibold">Board Game Clock</p>
+        <p className="text-2xl font-semibold">Board Game Clock</p>
         {session.status === SessionStatus.Unauthenticated ? (
           <button
             onClick={loginUser}
