@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import Image from "next/image";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Logo from "@/assets/png/logo/ClockLogo.png";
-// import { WebsocketClient } from "@/src/utils/Websocket";
+import { WebsocketClient } from "@/src/utils/Websocket";
 import { Spinner } from "@/components/loading/Spinner";
 
 export enum SessionStatus {
