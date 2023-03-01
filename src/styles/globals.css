@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+	:root {
+		--color-background: 6 4 16;
+	}
+}
+
+body {
+	position: relative;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+	color: white;
+}
+
+.countdownClockTransition {
+	transition-duration: 0.95s;
+	transition-timing-function: linear;
+}
+
+.bufferCountdownClockTransition {
+	transition-duration: 1s;
+	transition-timing-function: linear;
+}

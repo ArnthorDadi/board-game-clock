@@ -18,11 +18,14 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@/src/*": ["./src/*"]
+      "@/components/*": ["src/components/*"],
+      "@/assets/*": ["src/assets/*"],
+      "@/src/*": ["src/*"],
+      "@/*": ["/*"]
     }
   },
   "include": [
-	  ".eslintrc.json",
+    ".eslintrc.json",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",

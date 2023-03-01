@@ -20,5 +20,9 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  images: {
+    dangerouslyAllowSVG: true,
+    domains: ["images.unsplash.com", "api.dicebear.com"],
+  },
 };
 export default config;
