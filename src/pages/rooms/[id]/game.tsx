@@ -14,7 +14,6 @@ import { clamp } from "lodash";
 import { MIN_NR_MINUTES } from "@/src/pages";
 import { Button } from "@/components/button/Button";
 
-export const BUFFER_SECONDS = 20;
 
 const Game: NextPage = () => {
   const session = useSession();
@@ -40,10 +39,11 @@ const Game: NextPage = () => {
     typeof currentPlayer !== "undefined" &&
     player?.id === currentPlayer?.id;
   const isTimePaused = !!room?.isPaused;
+  const buffer = room?.buffer??20
 
   const [currentPlayerTime, bufferSeconds] = useCountdown(
     currentPlayer?.id,
-    BUFFER_SECONDS,
+      buffer,
     currentPlayer?.seconds ?? MIN_NR_MINUTES * 60,
     !isTimePaused
   );
@@ -55,7 +55,7 @@ const Game: NextPage = () => {
     1
   );
   const remainingBufferTimeInPercentages = clamp(
-    (bufferSeconds - 1) / BUFFER_SECONDS,
+    (bufferSeconds - 1) / buffer,
     0,
     1
   );

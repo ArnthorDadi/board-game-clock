@@ -22,21 +22,23 @@ import rooms from "@/src/pages/rooms";
 export const RoomsCollectionHelpingFunctions = {
   createRoom: async (
     id: string | undefined | null,
-    name: string | undefined | null
+    name: string | undefined | null,
+    game: { minutes: number; buffer: number; increment: number }
   ) => {
     if (!name || !id) {
       return;
     }
     const admin = { id, name } as Player;
     const roomName = getRandomHarryPotterName();
-    const defaultSeconds = 0.5 * 60;
     const addedDoc = await addDoc(collection(db, Collection.Rooms), {
       name: roomName,
       admin,
       playerTurn: admin,
-      players: [{ ...admin, seconds: defaultSeconds }],
+      players: [{ ...admin, seconds: game.minutes * 60 }],
       operations: [],
-      seconds: defaultSeconds,
+      seconds: game.minutes * 60,
+      buffer: game.buffer,
+      increment: game.increment,
       hasGameStarted: false,
       isPaused: false,
       createdAt: serverTimestamp() as Timestamp,
@@ -182,7 +184,7 @@ export const RoomsCollectionHelpingFunctions = {
           return {
             id: roomPlayer.id,
             name: roomPlayer.name,
-            seconds: remainingSeconds,
+            seconds: remainingSeconds + room.increment,
           };
         }
         return roomPlayer;

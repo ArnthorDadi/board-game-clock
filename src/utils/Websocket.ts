@@ -1,11 +1,11 @@
 // Import the functions you need from the SDKs you need
-import {initializeApp} from "firebase/app";
+import { initializeApp } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
-import {getFirestore, Timestamp} from "firebase/firestore";
-import {getAuth, signInAnonymously} from "firebase/auth";
-import {RoomsCollectionHelpingFunctions} from "@/src/utils/collections/Rooms";
-import {PlayersCollectionHelpingFunctions} from "@/src/utils/collections/Players";
-import {env} from "@/src/env.mjs";
+import { getFirestore, Timestamp } from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth";
+import { RoomsCollectionHelpingFunctions } from "@/src/utils/collections/Rooms";
+import { PlayersCollectionHelpingFunctions } from "@/src/utils/collections/Players";
+import { env } from "@/src/env.mjs";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -58,6 +58,8 @@ type DbTypes<C extends Collection> = {
       operations: Operation[];
       playerTurn: Player;
       seconds: number;
+      buffer: number;
+      increment: number;
       isPaused: boolean;
       hasGameStarted: boolean;
       createdAt: Timestamp;
