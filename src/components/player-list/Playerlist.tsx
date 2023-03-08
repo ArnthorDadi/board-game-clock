@@ -15,6 +15,6 @@ export const PlayerList: React.FC<PlayerListProps> = ({
 
 export type PlayerItemProps = { player: Player[] };
 
-export const PlayerItem: React.FC<Player> = ({ player }) => {
+export const PlayerItem: React.FC<PlayerItemProps> = ({ player }) => {
   return null;
 };
