@@ -10,9 +10,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 // import {WebsocketClient} from "@/src/utils/Websocket";
 
+export enum Route {
+    LocalGame='/game'
+}
+
 const WebsocketNeededUrls = ["/rooms"];
 
-export const BUFFER_SECONDS = 20
+export const BUFFER_SECONDS = 0
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,

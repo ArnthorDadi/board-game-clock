@@ -3,8 +3,14 @@ import { Command, WebsocketClient } from "@/src/utils/Websocket";
 import { SessionStatus } from "@/components/layout/Navbar";
 import { Button } from "@/components/button/Button";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useListenToRoom } from "@/src/hooks/WebsocketHooks";
+import {
+  DropdownGroupItems,
+  DropdownIcon,
+  DropdownIconProps,
+  DropdownIcons,
+} from "@/components/dropdown/DropdownIcon";
 
 export default function PostPage() {
   const session = useSession();
@@ -82,14 +88,44 @@ export default function PostPage() {
     session.status,
   ]);
 
+  const dropdownItems = useMemo(
+    () =>
+      [
+        {
+          items: [
+            {
+              text: "Change admin",
+              onClick: () => console.log("Change admin", {}),
+            },
+          ],
+        },
+      ] as DropdownIconProps["itemGroups"],
+    []
+  );
+  const bottomItem = useMemo(
+    () =>
+      ({
+        text: "Leave",
+        onClick: () => console.log("Leave", {}),
+      } as DropdownIconProps["bottomItem"]),
+    []
+  );
+
   return (
     <div className={"flex flex-1 flex-col gap-4"}>
-      <div className={"mr-auto"}>
-        <Button onClick={leaveRoom} text={"Leave"} />
+      <div className={"relative"}>
+        <h1 className={"justify-self-center text-center text-2xl font-bold"}>
+          {room?.name}
+        </h1>
+        <div className={"absolute top-0 right-0"}>
+          <DropdownIcon
+            icon={DropdownIcons.Cogwheel}
+            itemGroups={dropdownItems}
+            bottomItem={bottomItem}
+            className={"flex justify-self-center"}
+          />
+        </div>
       </div>
-      <h1 className={"justify-self-start text-center text-2xl font-bold"}>
-        {room?.name}
-      </h1>
       <div className={"grid grid-cols-2 grid-rows-2 content-center gap-4"}>
         <p
           className={"my-auto justify-self-start text-center text-lg font-bold"}

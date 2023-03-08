@@ -75,107 +75,42 @@ const RoomList: FC = () => {
     )
     .filter((room) => !room.hasGameStarted);
 
-  const createRoom = async () => {
-    const { id, name } = session.data?.user ?? {};
-    setShowModal(false);
-    const doc = await WebsocketClient.rooms.createRoom(id, name, {minutes, buffer,increment});
-    if (!doc) {
-      return;
-    }
-    router.push(`/rooms/${doc.id}`);
-  };
-
-  const [minutes, setMinutes] = useState(10);
-  const [buffer, setBuffer] = useState(20);
-  const [increment, setIncrement] = useState(15);
-
   return (
-    <div className={"w-full"}>
+    <div className={"flex w-full flex-col bg-green-500"}>
       {loading ? <p>Loading rooms...</p> : null}
-      <h1 className={"text-lg font-bold"}>Rooms</h1>
       {(rooms?.length ?? 0) == 0 ? (
-        <p className={"mb-5 text-xs"}>
+        <p className={"mb-5 text-center text-xs"}>
           There are no active rooms right now, so lets create one!
         </p>
       ) : null}
-      {(rooms?.length ?? 0) > 0 ? (
-        <div className={"-z-10 flex w-full flex-col gap-4 p-6 pb-14"}>
-          {rooms?.map((room) => (
-            <Room key={room.id} {...room} />
+      <input
+        placeholder={"Search..."}
+        type={"text"}
+        className={"rounded py-2 px-3"}
+      />
+      <div className={"shrink-1 relative flex flex-1 basis-auto bg-green-500"}>
+        <div
+          className={
+            "absolute inset-0 flex flex-col overflow-auto bg-red-500 pt-4"
+          }
+        >
+          {rooms?.map((room, index) => (
+            <Room key={room.id} index={index} {...room} />
           ))}
         </div>
-      ) : null}
-      <div className={"fixed bottom-16 left-0 right-0 z-10"}>
-        <div className={"container mx-auto px-6"}>
-          <Button
-            onClick={()=>setShowModal(true)}
-            text={"Create room"}
-            className={"min-w-full"}
-          />
-        </div>
+      </div>
+      <div className={" mx-auto w-full pt-3"}>
+        <Button
+          onClick={() => setShowModal(true)}
+          text={"Create room"}
+          className={"min-w-full"}
+        />
       </div>
       <CreateGameModal
         showModal={showModal}
-        title={"Create Game"}
-        onCrossClick={() => setShowModal(false)}
-        onCancelClick={() => setShowModal(false)}
-        onAcceptClick={createRoom}
-      >
-        <div className={'flex flex-col gap-4'}>
-          <div className={"row space-between flex"}>
-            <Button
-              className={"max-w-[50px] justify-self-start"}
-              onClick={() => setMinutes(prev=>prev-1)}
-              text={"-"}
-            />
-            <div className={"mx-auto my-auto flex-1"}>
-              <p className={"my-auto text-center"}>
-                {minutes} <span className={'text-orange-500'}>minutes</span>
-              </p>
-            </div>
-            <Button
-              className={"max-w-[50px] justify-self-end"}
-              onClick={() => setMinutes(prev => prev + 1)}
-              text={"+"}
-            />
-          </div>
-          <p className={'text-base'}>Each Turn</p>
-          <div className={"row space-between flex"}>
-            <Button
-                className={"max-w-[50px] justify-self-start"}
-                onClick={() => setBuffer(prev => prev - 5)}
-                text={"-"}
-            />
-            <div className={"mx-auto my-auto flex-1"}>
-              <p className={"my-auto text-center"}>
-                {buffer} <span className={'text-orange-500'}>buffer sec</span>
-              </p>
-            </div>
-            <Button
-                className={"max-w-[50px] justify-self-end"}
-                onClick={() => setBuffer(prev => prev + 5)}
-                text={"+"}
-            />
-          </div>
-          <div className={"row space-between flex"}>
-            <Button
-                className={"max-w-[50px] justify-self-start"}
-                onClick={() => setIncrement(prev => prev - 5)}
-                text={"-"}
-            />
-            <div className={"mx-auto my-auto flex-1"}>
-              <p className={"my-auto text-center"}>
-                {increment} <span className={'text-orange-500'}>increment</span>
-              </p>
-            </div>
-            <Button
-                className={"max-w-[50px] justify-self-end"}
-                onClick={() => setIncrement(prev => prev + 5)}
-                text={"+"}
-            />
-          </div>
-        </div>
-      </CreateGameModal>
+        closeModal={() => setShowModal(false)}
+        isLocalGame={false}
+      />
     </div>
   );
 };
