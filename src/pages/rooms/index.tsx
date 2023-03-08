@@ -56,8 +56,6 @@ const Rooms: NextPage = () => {
 };
 
 const RoomList: FC = () => {
-  const router = useRouter();
-  const session = useSession();
   const [showModal, setShowModal] = useState(false);
   const [roomsData, loading, error] = useCollection(
     query(
@@ -66,6 +64,9 @@ const RoomList: FC = () => {
       limit(5)
     )
   );
+
+  const [search, setSearch] = useState("");
+
   const rooms = roomsData?.docs
     .map(
       (doc) =>
@@ -73,29 +74,40 @@ const RoomList: FC = () => {
           id: string;
         } & CollectionType<Collection.Rooms>)
     )
-    .filter((room) => !room.hasGameStarted);
+    .filter((room) => !room.hasGameStarted)
+    .filter(
+      (room) =>
+        room.name.toLowerCase().includes(search.toLowerCase()) ||
+        room.admin.name.toLowerCase().includes(search.toLowerCase())
+    );
 
   return (
-    <div className={"flex w-full flex-col bg-green-500"}>
-      {loading ? <p>Loading rooms...</p> : null}
-      {(rooms?.length ?? 0) == 0 ? (
-        <p className={"mb-5 text-center text-xs"}>
-          There are no active rooms right now, so lets create one!
-        </p>
-      ) : null}
+    <div className={"flex w-full flex-col"}>
       <input
         placeholder={"Search..."}
+        value={search}
         type={"text"}
+        onChange={(event) => setSearch(event.target.value)}
         className={"rounded py-2 px-3"}
       />
-      <div className={"shrink-1 relative flex flex-1 basis-auto bg-green-500"}>
+      {loading ? <p>Loading rooms...</p> : null}
+      {(rooms?.length ?? 0) == 0 ? (
+        <p className={"my-5 text-center text-xs"}>
+          {!search
+            ? "There are no active rooms right now, so lets create one!"
+            : "No room with that name!"}
+        </p>
+      ) : null}
+      <div className={"shrink-1 relative flex flex-1 basis-auto"}>
         <div
           className={
-            "absolute inset-0 flex flex-col overflow-auto bg-red-500 pt-4"
+            "absolute inset-0 grid auto-rows-min gap-4 overflow-auto pt-4"
           }
         >
           {rooms?.map((room, index) => (
-            <Room key={room.id} index={index} {...room} />
+            <div key={room.id}>
+              <Room index={index} {...room} />
+            </div>
           ))}
         </div>
       </div>

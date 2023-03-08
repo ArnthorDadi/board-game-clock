@@ -22,7 +22,7 @@ const config = {
   },
   images: {
     dangerouslyAllowSVG: true,
-    domains: ["images.unsplash.com", "api.dicebear.com"],
+    domains: ["images.unsplash.com", "api.dicebear.com", "cdn.pixabay.com"],
   },
 };
 export default config;
