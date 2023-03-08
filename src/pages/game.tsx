@@ -5,7 +5,7 @@ import { clamp } from "lodash";
 import { MIN_NR_MINUTES } from "@/src/pages/index";
 import { useCountdown } from "@/src/hooks/useCountdown";
 import { LocalStorageKey, useLocalStorage } from "@/src/hooks/useLocalStorage";
-import { Button } from "@/components/button/Button";
+import { Button, ButtonSize, ButtonTypes } from "@/components/button/Button";
 import { CountdownClock } from "@/components/CountdownClock";
 import { BUFFER_SECONDS } from "@/src/pages/_app";
 
@@ -111,7 +111,13 @@ const Game: NextPage = () => {
   return (
     <div className={"flex flex-1 flex-col gap-4"}>
       <div className={"mr-auto"}>
-        <Button onClick={onQuitGameClick} text={"Quit"} />
+        <Button
+          type={ButtonTypes.Ghost}
+          isSquare={true}
+          size={ButtonSize.Small}
+          onClick={onQuitGameClick}
+          text={"Quit"}
+        />
       </div>
       {/* Clock */}
       <button
@@ -154,6 +160,7 @@ const Game: NextPage = () => {
       <div className={"flex w-full flex-col justify-items-center gap-4"}>
         {isTimeUp ? (
           <Button
+            type={ButtonTypes.Secondary}
             onClick={onResetMyTimeClick}
             text={"Reset my time"}
             className={"mx-auto"}
@@ -161,10 +168,17 @@ const Game: NextPage = () => {
         ) : null}
         <div className={"flex w-full flex-row justify-center gap-4"}>
           <Button
+            disabled={isTimeUp}
+            type={ButtonTypes.Ghost}
             onClick={onPauseTimeClick}
             text={isTimePaused ? "Start" : "Stop"}
           />
-          <Button onClick={previousPlayerTurn} text={"Previous"} />
+          <Button
+            disabled={isTimeUp}
+            type={ButtonTypes.Primary}
+            onClick={previousPlayerTurn}
+            text={"Previous"}
+          />
         </div>
       </div>
     </div>

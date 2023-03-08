@@ -6,7 +6,7 @@ import { NextPage } from "next";
 import Image from "next/image";
 
 import { LocalStorageKey, useLocalStorage } from "@/src/hooks/useLocalStorage";
-import { Button } from "@/src/components/button/Button";
+import { Button, ButtonTypes } from "@/src/components/button/Button";
 import SunsetClock from "../assets/png/clocks/SunsetClock.png";
 
 export const MIN_NR_PLAYERS = 2;
@@ -44,12 +44,13 @@ const Home: NextPage = () => {
               onClick={() => {
                 setOpenCreateLocalGame(true);
               }}
-              text={"Create Local game"}
+              text={"Local game"}
             />
             {session.status === "authenticated" ? (
               <Button
+                type={ButtonTypes.Secondary}
                 onClick={() => router.push("/rooms")}
-                text={"Join online game"}
+                text={"Online game"}
               />
             ) : null}
           </>
@@ -151,7 +152,7 @@ const CreateLocalGame: FC<{ className?: string; onCancel: () => void }> = ({
         </button>
       </div>
       <div className={"flex flex-row gap-4"}>
-        <Button onClick={onCancel} text={"Cancel"} />
+        <Button type={ButtonTypes.Ghost} onClick={onCancel} text={"Cancel"} />
         <Button onClick={onCreateGameClick} text={"Create game!"} />
       </div>
     </div>
