@@ -2,17 +2,17 @@ import { type NextPage } from "next";
 import { Fragment, useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import { clamp } from "lodash";
-import { MIN_NR_MINUTES } from "@/src/pages/index";
 import { useCountdown } from "@/src/hooks/useCountdown";
 import { LocalStorageKey, useLocalStorage } from "@/src/hooks/useLocalStorage";
 import { Button, ButtonSize, ButtonTypes } from "@/components/button/Button";
 import { CountdownClock } from "@/components/CountdownClock";
 import { BUFFER_SECONDS } from "@/src/pages/_app";
+import { MIN_MINUTES } from "@/components/modals/CreateGameModal";
 
 const Game: NextPage = () => {
   const router = useRouter();
   const [timeData, _] = useLocalStorage(LocalStorageKey.Time, {
-    seconds: MIN_NR_MINUTES * 60,
+    seconds: MIN_MINUTES * 60,
   });
 
   const [playersData, setPlayersData] = useLocalStorage(

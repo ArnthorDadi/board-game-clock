@@ -76,23 +76,30 @@ const RoomList: FC = () => {
     .filter((room) => !room.hasGameStarted);
 
   return (
-    <div className={"flex flex-col w-full bg-green-500"}>
-
+    <div className={"flex w-full flex-col bg-green-500"}>
       {loading ? <p>Loading rooms...</p> : null}
       {(rooms?.length ?? 0) == 0 ? (
         <p className={"mb-5 text-center text-xs"}>
           There are no active rooms right now, so lets create one!
         </p>
       ) : null}
-      <input placeholder={'Search...'} type={'text'} className={'py-2 px-3 rounded'} />
-      <div className={"flex relative flex-1 shrink-1 basis-auto bg-green-500"}>
-        <div className={'absolute pt-4 flex flex-col inset-0 bg-red-500 overflow-auto'}>
-        {rooms?.map((room) => (
-          <Room key={room.id} {...room} />
-        ))}
+      <input
+        placeholder={"Search..."}
+        type={"text"}
+        className={"rounded py-2 px-3"}
+      />
+      <div className={"shrink-1 relative flex flex-1 basis-auto bg-green-500"}>
+        <div
+          className={
+            "absolute inset-0 flex flex-col overflow-auto bg-red-500 pt-4"
+          }
+        >
+          {rooms?.map((room, index) => (
+            <Room key={room.id} index={index} {...room} />
+          ))}
         </div>
       </div>
-      <div className={" w-full mx-auto pt-3"}>
+      <div className={" mx-auto w-full pt-3"}>
         <Button
           onClick={() => setShowModal(true)}
           text={"Create room"}

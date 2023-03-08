@@ -11,9 +11,8 @@ import { Fragment, useCallback, useEffect, useMemo } from "react";
 import { useCountdown } from "@/src/hooks/useCountdown";
 import { useListenToRoom } from "@/src/hooks/WebsocketHooks";
 import { clamp } from "lodash";
-import { MIN_NR_MINUTES } from "@/src/pages";
 import { Button } from "@/components/button/Button";
-
+import { MIN_MINUTES } from "@/components/modals/CreateGameModal";
 
 const Game: NextPage = () => {
   const session = useSession();
@@ -39,18 +38,18 @@ const Game: NextPage = () => {
     typeof currentPlayer !== "undefined" &&
     player?.id === currentPlayer?.id;
   const isTimePaused = !!room?.isPaused;
-  const buffer = room?.buffer??20
+  const buffer = room?.buffer ?? 20;
 
   const [currentPlayerTime, bufferSeconds] = useCountdown(
     currentPlayer?.id,
-      buffer,
-    currentPlayer?.seconds ?? MIN_NR_MINUTES * 60,
+    buffer,
+    currentPlayer?.seconds ?? MIN_MINUTES * 60,
     !isTimePaused
   );
   const nrOfPlayers = room?.players.length ?? 0;
   const isTimeUp = currentPlayerTime === 0;
   const remainingTimeInPercentages = clamp(
-    currentPlayerTime / (room?.seconds ?? MIN_NR_MINUTES),
+    currentPlayerTime / (room?.seconds ?? MIN_MINUTES),
     0,
     1
   );

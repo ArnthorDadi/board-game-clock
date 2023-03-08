@@ -1,21 +1,12 @@
 import { useRouter } from "next/router";
-import { FC, useCallback, useState } from "react";
-import { clamp } from "lodash";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { NextPage } from "next";
 import Image from "next/image";
-
-import { LocalStorageKey, useLocalStorage } from "@/src/hooks/useLocalStorage";
 import { Button, ButtonTypes } from "@/src/components/button/Button";
 import SunsetClock from "../assets/png/clocks/SunsetClock.png";
 import { SessionStatus } from "@/components/layout/Navbar";
 import { CreateGameModal } from "@/components/modals/CreateGameModal";
-
-export const MIN_NR_PLAYERS = 2;
-export const MAX_NR_PLAYERS = 10;
-
-export const MIN_NR_MINUTES = 1;
-export const MAX_NR_MINUTES = 30;
 
 const Home: NextPage = () => {
   const session = useSession();

@@ -3,7 +3,6 @@ import { Modal, ModalProps } from "@/components/modals/Modal";
 import { Button, ButtonTypes } from "@/components/button/Button";
 import { clamp } from "lodash";
 import { LocalStorageKey, useLocalStorage } from "@/src/hooks/useLocalStorage";
-import { MIN_NR_MINUTES } from "@/src/pages";
 import { useRouter } from "next/router";
 import { Route } from "@/src/pages/_app";
 import { WebsocketClient } from "@/src/utils/Websocket";
@@ -37,7 +36,7 @@ export const CreateGameModal: React.FC<CreateGameModalProps> = ({
   const title = isLocalGame ? "Local Game" : "Online Game";
 
   const [_, setTime] = useLocalStorage(LocalStorageKey.Time, {
-    seconds: MIN_NR_MINUTES * 60,
+    seconds: MIN_MINUTES * 60,
   });
 
   const [__, setPlayers] = useLocalStorage(LocalStorageKey.Players, {
