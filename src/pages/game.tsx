@@ -175,7 +175,6 @@ const Game: NextPage = () => {
           />
           <Button
             disabled={isTimeUp}
-            type={ButtonTypes.Primary}
             onClick={previousPlayerTurn}
             text={"Previous"}
           />

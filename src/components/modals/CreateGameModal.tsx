@@ -1,102 +1,188 @@
-import React, { useState } from "react";
-import { initial } from "lodash";
+import React, { FC, useCallback, useState } from "react";
+import { Modal, ModalProps } from "@/components/modals/Modal";
+import { Button, ButtonTypes } from "@/components/button/Button";
+import { clamp } from "lodash";
+import { LocalStorageKey, useLocalStorage } from "@/src/hooks/useLocalStorage";
+import { MIN_NR_MINUTES } from "@/src/pages";
+import { useRouter } from "next/router";
+import { Route } from "@/src/pages/_app";
+import { WebsocketClient } from "@/src/utils/Websocket";
+import { useSession } from "next-auth/react";
+
+export const MIN_NUMBER_OF_PLAYERS = 2;
+export const MAX_NUMBER_OF_PLAYERS = 20;
+
+export const MIN_MINUTES = 1;
+export const MAX_MINUTES = 40;
+
+export const MIN_BUFFER = 0;
+export const MAX_BUFFER = 60 * 3;
+
+export const MIN_ADD = 0;
+export const MAX_ADD = 60 * 3;
 
 type CreateGameModalProps = {
-  showModal: boolean;
-  title: string;
-  onCrossClick: () => void;
-  onCancelClick: () => void;
-  onAcceptClick: () => void;
-  children: React.ReactNode;
-};
+  isLocalGame?: boolean;
+  closeModal: () => void;
+} & Pick<ModalProps, "showModal">;
 
 export const CreateGameModal: React.FC<CreateGameModalProps> = ({
-  showModal = true,
-  title,
-  onCrossClick,
-  onCancelClick,
-  onAcceptClick,
-  children,
+  showModal = false,
+  isLocalGame = false,
+  closeModal,
+}) => {
+  const router = useRouter();
+  const session = useSession();
+
+  const title = isLocalGame ? "Local Game" : "Online Game";
+
+  const [_, setTime] = useLocalStorage(LocalStorageKey.Time, {
+    seconds: MIN_NR_MINUTES * 60,
+  });
+
+  const [__, setPlayers] = useLocalStorage(LocalStorageKey.Players, {
+    players: [],
+  });
+
+  const [numberOfPlayers, setNumberOfPlayers] = useState(MIN_NUMBER_OF_PLAYERS);
+  const [minutes, setMinutes] = useState(MIN_MINUTES);
+  const [buffer, setBuffer] = useState(MIN_BUFFER);
+  const [add, setAdd] = useState(MIN_ADD);
+
+  const onCreateLocalGame = useCallback(async () => {
+    setTime({ seconds: minutes * 60 });
+    setPlayers((prev) => {
+      const newPlayers = [];
+      for (let i = 0; i < numberOfPlayers; i++) {
+        newPlayers.push({
+          seconds: minutes * 60,
+        });
+      }
+      return { players: newPlayers };
+    });
+    await router.push(Route.LocalGame);
+  }, [minutes, numberOfPlayers, router, setPlayers, setTime]);
+  const onCreateOnlineGame = useCallback(async () => {
+    const { id, name } = session.data?.user ?? {};
+    closeModal();
+    const doc = await WebsocketClient.rooms.createRoom(id, name, {
+      minutes,
+      buffer,
+      increment: add,
+    });
+    if (!doc) {
+      // TODO: handle error
+      return;
+    }
+    await router.push(`/rooms/${doc.id}`);
+  }, [add, buffer, closeModal, minutes, router, session.data?.user]);
+
+  const onAcceptClick = useCallback(
+    async () =>
+      isLocalGame ? await onCreateLocalGame() : await onCreateOnlineGame(),
+    [isLocalGame, onCreateLocalGame, onCreateOnlineGame]
+  );
+
+  return (
+    <Modal
+      showModal={showModal}
+      title={title}
+      acceptButtonText={"Create Game"}
+      cancelButtonText={"Cancel"}
+      onAcceptClick={onAcceptClick}
+      onCrossClick={() => {
+        console.log("kamsd;lfma;lsmf", {});
+        closeModal();
+      }}
+      onCancelClick={closeModal}
+    >
+      <div className={"flex flex-col gap-4"}>
+        {isLocalGame ? (
+          <GameDataFields
+            value={numberOfPlayers}
+            text={"players"}
+            onAddClick={() =>
+              setNumberOfPlayers((prev) =>
+                clamp(prev + 1, MIN_NUMBER_OF_PLAYERS, MAX_NUMBER_OF_PLAYERS)
+              )
+            }
+            onRemoveClick={() =>
+              setNumberOfPlayers((prev) =>
+                clamp(prev - 1, MIN_NUMBER_OF_PLAYERS, MAX_NUMBER_OF_PLAYERS)
+              )
+            }
+          />
+        ) : null}
+        <GameDataFields
+          value={minutes}
+          text={minutes === 1 ? "minute" : "minutes"}
+          onAddClick={() =>
+            setMinutes((prev) => clamp(prev + 1, MIN_MINUTES, MAX_MINUTES))
+          }
+          onRemoveClick={() =>
+            setMinutes((prev) => clamp(prev - 1, MIN_MINUTES, MAX_MINUTES))
+          }
+        />
+        <p className={"text-center"}>Each Turn</p>
+        <GameDataFields
+          value={buffer}
+          text={"buffer"}
+          onAddClick={() =>
+            setBuffer((prev) => clamp(prev + 5, MIN_BUFFER, MAX_BUFFER))
+          }
+          onRemoveClick={() =>
+            setBuffer((prev) => clamp(prev - 5, MIN_BUFFER, MAX_BUFFER))
+          }
+        />
+        <GameDataFields
+          value={add}
+          text={"Add"}
+          onAddClick={() => setAdd((prev) => clamp(prev + 5, MIN_ADD, MAX_ADD))}
+          onRemoveClick={() =>
+            setAdd((prev) => clamp(prev - 5, MIN_ADD, MAX_ADD))
+          }
+        />
+      </div>
+    </Modal>
+  );
+};
+
+type GameDataFieldsProps = {
+  value: number;
+  text: string;
+  onAddClick: () => void;
+  onRemoveClick: () => void;
+};
+
+const GameDataFields: FC<GameDataFieldsProps> = ({
+  text,
+  value,
+  onAddClick,
+  onRemoveClick,
 }) => {
   return (
-    <div className={`${
-        showModal ? "" : "hidden"
-    } absolute inset-0 bg-[rgba(0,0,0,0.8)]`}>
-      <div
-        id="small-modal"
-        tabIndex={-1}
-        className={`${
-          showModal ? "" : "hidden"
-        } fixed top-0 left-0 right-0 z-50 h-[calc(100%-1rem)] w-full overflow-y-auto overflow-x-hidden p-4`}
-      >
-        <div className="relative flex h-full w-full items-center md:h-auto">
-          {/* <!-- Modal content --> */}
-          <div className="relative w-full rounded-lg bg-white shadow dark:bg-gray-700">
-            {/* <!-- Modal header --> */}
-            <div className="flex w-full items-center justify-between rounded-t border-b p-5 dark:border-gray-600">
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                {title}
-              </h3>
-              <button
-                type="button"
-                onClick={onCrossClick}
-                className="ml-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
-                data-modal-hide="small-modal"
-              >
-                <svg
-                  aria-hidden="true"
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-            {/* <!-- Modal body --> */}
-            <div className="w-full space-y-6 p-6">
-              {children}
-              {/*<p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">*/}
-              {/*  With less than a month to go before the European Union enacts new*/}
-              {/*  consumer privacy laws for its citizens, companies around the world*/}
-              {/*  are updating their terms of service agreements to comply.*/}
-              {/*</p>*/}
-              {/*<p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">*/}
-              {/*  The European Union’s General Data Protection Regulation (G.D.P.R.)*/}
-              {/*  goes into effect on May 25 and is meant to ensure a common set of*/}
-              {/*  data rights in the European Union. It requires organizations to*/}
-              {/*  notify users as soon as possible of high-risk data breaches that*/}
-              {/*  could personally affect them.*/}
-              {/*</p>*/}
-            </div>
-            {/* <!-- Modal footer --> */}
-            <div className="flex items-center space-x-2 rounded-b border-t border-gray-200 p-6 dark:border-gray-600">
-              <button
-                onClick={onAcceptClick}
-                data-modal-hide="small-modal"
-                type="button"
-                className="rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Create Game
-              </button>
-              <button
-                onClick={onCancelClick}
-                data-modal-hide="small-modal"
-                type="button"
-                className="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-600"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className={"row space-between flex"}>
+      <Button
+        text={"-"}
+        isSquare={true}
+        disabled={false}
+        type={ButtonTypes.Gray}
+        onClick={onRemoveClick}
+        className={"max-w-[50px] justify-self-start"}
+      />
+      <div className={"mx-auto my-auto flex-1"}>
+        <p className={"my-auto text-center"}>
+          {value} <span className={"text-orange-500"}>{text}</span>
+        </p>
       </div>
+      <Button
+        text={"+"}
+        isSquare={true}
+        disabled={false}
+        onClick={onAddClick}
+        type={ButtonTypes.Primary}
+        className={"max-w-[50px] justify-self-end"}
+      />
     </div>
   );
 };
