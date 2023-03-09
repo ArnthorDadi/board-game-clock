@@ -36,7 +36,7 @@ export const PlayerList: React.FC<PlayerListProps> = ({
               isLast={players.length - 1 === index}
             />
           ))}
-          {players.length === 1 ? (
+          {players?.length === 1 ? (
             <p className={"text-xs"}>Waiting for other players to join...</p>
           ) : null}
         </ul>
