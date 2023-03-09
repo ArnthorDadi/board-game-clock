@@ -1,25 +1,39 @@
 import { useRouter } from "next/router";
-import { Command, WebsocketClient } from "@/src/utils/Websocket";
+import { Command, Player, WebsocketClient } from "@/src/utils/Websocket";
 import { SessionStatus } from "@/components/layout/Navbar";
 import { Button } from "@/components/button/Button";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo } from "react";
 import { useListenToRoom } from "@/src/hooks/WebsocketHooks";
 import {
-  DropdownGroupItems,
   DropdownIcon,
   DropdownIconProps,
   DropdownIcons,
 } from "@/components/dropdown/DropdownIcon";
+import { Separator } from "@/components/separator/Separator";
+import { getTimeFromSeconds } from "@/src/utils/Utilities";
+import {
+  MIN_ADD,
+  MIN_BUFFER,
+  MIN_MINUTES,
+} from "@/components/modals/CreateGameModal";
+import { PlayerList } from "@/components/player-list/Playerlist";
 
 export default function PostPage() {
   const session = useSession();
   const router = useRouter();
 
-  const teamId = (router.query.id ?? "w") as string;
+  const roomId = (router.query.id ?? "w") as string;
 
-  const { data: room, loading } = useListenToRoom(teamId);
+  const { data: room, loading } = useListenToRoom(roomId);
 
+  const player = useMemo(
+    () => ({
+      id: session.data?.user?.id ?? "",
+      name: session.data?.user?.name ?? "",
+    }),
+    [session.data?.user?.id, session.data?.user?.name]
+  );
   const username = session.data?.user?.name ?? "";
   const players = room?.players;
   const operations = room?.operations;
@@ -29,22 +43,21 @@ export default function PostPage() {
       room?.hasGameStarted ||
       operations?.some((operations) => operations.command === Command.StartGame)
     ) {
-      router.push(`/rooms/${teamId}/game`);
+      router.push(`/rooms/${roomId}/game`);
     }
-  }, [teamId, operations, room?.hasGameStarted, router]);
+  }, [roomId, operations, room?.hasGameStarted, router]);
 
   const leaveRoom = useCallback(async () => {
-    if (!room?.admin.id || !session.data?.user.id || !session.data?.user.name) {
+    console.log("leaveRoom ", { room, player });
+    if (!room?.admin.id || !player.id || !player.name) {
       return;
     }
-    await WebsocketClient.rooms.leaveRoom(teamId, {
-      id: session.data?.user.id ?? "",
-      name: session.data?.user.name ?? "",
-    });
+    await WebsocketClient.rooms.leaveRoom(roomId, player);
     if (room?.admin.id === session.data?.user.id) {
-      await WebsocketClient.rooms.deleteRoom(teamId);
+      await WebsocketClient.rooms.deleteRoom(roomId);
     }
-  }, [teamId, room?.admin.id, session.data?.user.id, session.data?.user.name]);
+    console.log("Leave", {});
+  }, [room, session, roomId, player]);
 
   useEffect(() => {
     if (loading) {
@@ -75,8 +88,7 @@ export default function PostPage() {
       !!session?.data?.user.id &&
       !players.some((player) => player.id === session?.data?.user.id)
     ) {
-      console.log("Player is not in room", { id: session?.data?.user.id });
-      // router.back();
+      router.back();
     }
   }, [
     leaveRoom,
@@ -94,22 +106,18 @@ export default function PostPage() {
         {
           items: [
             {
-              text: "Change admin",
-              onClick: () => console.log("Change admin", {}),
+              text: "Leave",
+              onClick: async () => {
+                await leaveRoom();
+              },
             },
           ],
         },
       ] as DropdownIconProps["itemGroups"],
-    []
+    [leaveRoom]
   );
-  const bottomItem = useMemo(
-    () =>
-      ({
-        text: "Leave",
-        onClick: () => console.log("Leave", {}),
-      } as DropdownIconProps["bottomItem"]),
-    []
-  );
+
+  const isUserAdmin = room?.admin.id === player.id;
 
   return (
     <div className={"flex flex-1 flex-col gap-4"}>
@@ -121,53 +129,58 @@ export default function PostPage() {
           <DropdownIcon
             icon={DropdownIcons.Cogwheel}
             itemGroups={dropdownItems}
-            bottomItem={bottomItem}
             className={"flex justify-self-center"}
           />
         </div>
       </div>
-      <div className={"grid grid-cols-2 grid-rows-2 content-center gap-4"}>
+
+      <div>
+        <Separator />
+        <div className={"flex w-full flex-row justify-between py-2 px-4"}>
+          <div>
+            <p className={"text-center text-sm text-gray-400"}>Time</p>
+            <p className={"text-center text-sm text-gray-400"}>
+              {getTimeFromSeconds(room?.seconds ?? MIN_MINUTES)}
+            </p>
+          </div>
+          <div>
+            <p className={"text-center text-sm text-gray-400"}>Buffer</p>
+            <p className={"text-center text-sm text-gray-400"}>
+              {getTimeFromSeconds(room?.buffer ?? MIN_BUFFER)}
+            </p>
+          </div>
+          <div>
+            <p className={"text-center text-sm text-gray-400"}>Add</p>
+            <p className={"text-center text-sm text-gray-400"}>
+              {getTimeFromSeconds(room?.increment ?? MIN_ADD)}
+            </p>
+          </div>
+        </div>
+        <Separator />
+      </div>
+
+      <div className={"flex flex-row justify-between"}>
+        <p className={"text-xl font-bold"}>Admin</p>
         <p
-          className={"my-auto justify-self-start text-center text-lg font-bold"}
-        >
-          Admin:
-        </p>
-        <p
-          className={`my-auto justify-self-end text-base font-bold ${
-            room?.admin.name === username ? "text-orange-500" : ""
+          className={`text-lg font-bold ${
+            isUserAdmin ? "text-orange-500" : ""
           }`}
         >
           {room?.admin.name}
         </p>
-        <p className={"justify-self-start text-center text-lg font-bold"}>
-          Players:
-        </p>
-        <ul className={"my-auto"}>
-          {players?.map((player) => (
-            <li key={player.id}>
-              <p
-                className={`text-right text-base ${
-                  player.name === username ? "font-bold text-orange-500" : ""
-                }`}
-              >
-                {player.name}
-              </p>
-            </li>
-          ))}
-          {room?.players.length === 1 ? (
-            <p className={"my-auto text-right text-xs"}>
-              Waiting for other players to join...
-            </p>
-          ) : null}
-        </ul>
       </div>
+
+      <Separator />
+
+      <PlayerList players={room?.players} admin={room?.admin} />
+
       {!!room?.admin.id &&
       !!session.data?.user.id &&
-      room?.players?.length > 1 &&
       room?.admin.id === session.data?.user.id ? (
         <Button
+          disabled={room?.players?.length <= 1}
           onClick={async () => {
-            await WebsocketClient.rooms.startGame(teamId, {
+            await WebsocketClient.rooms.startGame(roomId, {
               id: session.data?.user.id ?? "",
               name: session.data?.user.name ?? "",
             });

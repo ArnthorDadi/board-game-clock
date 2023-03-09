@@ -92,6 +92,59 @@ export const RoomsCollectionHelpingFunctions = {
     return roomDocument.data() as CollectionType<Collection.Rooms>;
   },
 
+  movePlayer: async (roomId: string, playerId: string, increment: number) => {
+    const roomDocument = await getDoc(doc(db, Collection.Rooms, roomId));
+    if (!roomDocument.exists()) {
+      console.error("Room does not exist", { roomId });
+      return undefined;
+    }
+    const room = roomDocument.data() as CollectionType<Collection.Rooms>;
+    const playerIndex = room.players.findIndex(
+      (player) => player.id === playerId
+    );
+    if (playerIndex === -1) {
+      console.error("Player was not found", { playerIndex });
+      return;
+    } else if (
+      room.players.length - 1 < playerIndex + increment ||
+      playerIndex + increment < 0
+    ) {
+      console.error("Cannot move player that far", {
+        increment,
+        playerLength: room.players.length,
+        playerIndex,
+      });
+      return;
+    }
+
+    let playerList = room.players;
+    const temp = playerList[playerIndex];
+    playerList[playerIndex] = playerList[
+      playerIndex + increment
+    ] as typeof playerList[0];
+    playerList[playerIndex + increment] = temp as typeof playerList[0];
+    await updateDoc(doc(db, Collection.Rooms, roomId), {
+      players: playerList,
+    });
+  },
+
+  kickPlayer: async (roomId: string, playerId: string) => {
+    const roomDocument = await getDoc(doc(db, Collection.Rooms, roomId));
+    if (!roomDocument.exists()) {
+      console.error("Room does not exist", { roomId });
+      return undefined;
+    }
+    const room = roomDocument.data() as CollectionType<Collection.Rooms>;
+    if (room.admin.id === playerId) {
+      console.error("Cannot kick admin", {});
+      return;
+    }
+    await RoomsCollectionHelpingFunctions.leaveRoom(roomId, {
+      id: playerId,
+      name: "asdf",
+    });
+  },
+
   leaveRoom: async (
     id: string | undefined | null,
     player: Player | undefined
