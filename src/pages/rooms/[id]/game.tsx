@@ -1,18 +1,14 @@
-import { type NextPage } from "next";
-import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
-import { CountdownClock } from "@/components/CountdownClock";
-import {
-  Collection,
-  CollectionType,
-  WebsocketClient,
-} from "@/src/utils/Websocket";
-import { Fragment, useCallback, useEffect, useMemo } from "react";
-import { useCountdown } from "@/src/hooks/useCountdown";
-import { useListenToRoom } from "@/src/hooks/WebsocketHooks";
-import { clamp } from "lodash";
-import { Button } from "@/components/button/Button";
-import { MIN_MINUTES } from "@/components/modals/CreateGameModal";
+import {type NextPage} from "next";
+import {useRouter} from "next/router";
+import {useSession} from "next-auth/react";
+import {CountdownClock} from "@/components/CountdownClock";
+import {Collection, CollectionType, WebsocketClient,} from "@/src/utils/Websocket";
+import {Fragment, useCallback, useEffect, useMemo} from "react";
+import {useCountdown} from "@/src/hooks/useCountdown";
+import {useListenToRoom} from "@/src/hooks/WebsocketHooks";
+import {clamp} from "lodash";
+import {Button, ButtonSize, ButtonTypes} from "@/components/button/Button";
+import {MIN_MINUTES} from "@/components/modals/CreateGameModal";
 
 const Game: NextPage = () => {
   const session = useSession();
@@ -164,7 +160,7 @@ const Game: NextPage = () => {
   return (
     <div className={"flex flex-1 flex-col gap-4"}>
       <div className={"mr-auto"}>
-        <Button onClick={onQuitGameClick} text={"Quit"} />
+        <Button type={ButtonTypes.Ghost} size={ButtonSize.Small} onClick={onQuitGameClick} text={"Quit"} />
       </div>
       {/* Clock */}
       <button
@@ -172,15 +168,17 @@ const Game: NextPage = () => {
         className={"relative flex flex-1"}
         onClick={nextPlayerTurn}
       >
-        <div className={"flex h-full w-full flex-col py-4"}>
+        <div className={"flex flex-col gap-4 py-2"}>
           <div
-            className={"align-center flex flex-[0.75] flex-row justify-evenly"}
+            className={
+              "align-center flex flex-[0.75] flex-row flex-wrap justify-evenly gap-2"
+            }
           >
             {room?.players.map((player, index) => (
               <Fragment key={player.id}>
                 <p
                   className={`my-auto ${
-                    player.id === currentPlayer.id && "text-2xl font-bold"
+                    player.id === currentPlayer?.id && "text-2xl font-bold"
                   } ${
                     player.id === session?.data?.user.id && "text-orange-500"
                   }`}
@@ -209,83 +207,30 @@ const Game: NextPage = () => {
       <div className={"flex w-full flex-col justify-items-center gap-4"}>
         {isTimeUp && isCurrentPlayer ? (
           <Button
+            type={ButtonTypes.Secondary}
             onClick={onResetMyTimeClick}
             text={"Reset my time"}
             className={"mx-auto"}
           />
         ) : null}
         <div className={"flex w-full flex-row justify-center gap-4"}>
-          {!isTimeUp ? (
-            <Button
-              onClick={onPauseTimeClick}
-              text={isTimePaused ? "Start" : "Stop"}
-            />
-          ) : null}
+          <Button
+            type={ButtonTypes.Ghost}
+            disabled={isTimeUp}
+            onClick={onPauseTimeClick}
+            text={isTimePaused ? "Start" : "Stop"}
+          />
           {isCurrentPlayer ? (
-            <Button onClick={previousPlayerTurn} text={"Previous"} />
+            <Button
+              disabled={isTimeUp}
+              onClick={previousPlayerTurn}
+              text={"Previous"}
+            />
           ) : null}
         </div>
       </div>
     </div>
   );
-  // return (
-  //   <div>
-  //     <h1>Online Game</h1>
-  //     {/* Clock */}
-  //     <button
-  //       type="button"
-  //       className={"relative flex flex-1"}
-  //       onClick={nextPlayerTurn}
-  //     >
-  //       <div className={"flex h-full w-full flex-col py-4"}>
-  //         <div
-  //           className={"align-center flex flex-[0.75] flex-row justify-evenly"}
-  //         >
-  //           {room?.players.map((player, index) => (
-  //             <Fragment key={`${player.id}`}>
-  //               <p
-  //                 className={`my-auto ${
-  //                   player.id === room?.playerTurn?.id && "text-2xl font-bold"
-  //                 } ${
-  //                   player.id === session?.data?.user.id && "text-orange-500"
-  //                 }`}
-  //               >
-  //                 {player.name}
-  //               </p>
-  //               {index + 1 !== nrOfPlayers ? (
-  //                 <p className={"my-auto"}>-</p>
-  //               ) : null}
-  //             </Fragment>
-  //           ))}
-  //         </div>
-  //         <CountdownClock
-  //           {...{
-  //             countdownKey: currentPlayer.id,
-  //             currentPlayerTime,
-  //             remainingTimeInPercentages,
-  //             isTimeUp,
-  //           }}
-  //         />
-  //       </div>
-  //     </button>
-  //     <div className={"flex w-full flex-col justify-items-center gap-4"}>
-  //       {isTimeUp ? (
-  //         <Button
-  //           onClick={onResetMyTimeClick}
-  //           text={"Reset my time"}
-  //           className={"mx-auto"}
-  //         />
-  //       ) : null}
-  //       <div className={"flex w-full flex-row justify-center gap-4"}>
-  //         <Button
-  //           onClick={onPauseTimeClick}
-  //           text={isTimePaused ? "Start" : "Stop"}
-  //         />
-  //         <Button onClick={previousPlayerTurn} text={"Previous"} />
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 };
 
 export default Game;
